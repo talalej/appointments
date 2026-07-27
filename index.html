@@ -72,9 +72,10 @@
       <iframe id="app-frame" title="Zakazivac aplikacija"></iframe>
     </div>
 
-    <script src="./config.js"></script>
+    <!-- Skripta učitava config.js iz istog direktorijuma -->
+    <script src="config.js"></script>
     <script>
-      (function boot() {
+      window.addEventListener("DOMContentLoaded", function () {
         var errorBox = document.getElementById("error");
         var frame = document.getElementById("app-frame");
 
@@ -83,12 +84,12 @@
 
         if (!webAppUrl) {
           errorBox.style.display = "block";
-          errorBox.innerHTML = "<strong>Nedostaje konfiguracija.</strong> Dodajte Apps Script URL u gh-pages/config.js (polje appsScriptWebAppUrl).";
+          errorBox.innerHTML = "<strong>Nedostaje konfiguracija.</strong> Unesite ispravan Apps Script URL u <code>config.js</code>.";
           return;
         }
 
         frame.src = webAppUrl;
-      })();
+      });
     </script>
   </body>
 </html>
