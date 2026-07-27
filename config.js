@@ -1,5 +1,5 @@
 (function (root) {
   root.APP_CONFIG = {
-    appsScriptWebAppUrl: "https://script.google.com/macros/s/AKfycbwN7Yjikk1rK7-qs3kYw52vPmXtBrxfc4A4s9H1kvQ/dev",
+    appsScriptWebAppUrl: "https://script.google.com/macros/s/AKfycbz1-rTt41P9LJuFKmpDIB2eVhTdZLWZYnEtoPmZwcyGgwF7tNAn9AF95LB1h28ByEHT/exec",
   };
 })(typeof window !== "undefined" ? window : this);
