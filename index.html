@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zakazivac</title>
+    <title>Zakazivač</title>
     <style>
       :root {
         color-scheme: dark;
@@ -61,18 +61,12 @@
     </style>
   </head>
   <body>
-    <div class="topbar">
-      <div class="title">Zakazivac</div>
-      <div class="hint">GitHub Pages klijentski shell</div>
-    </div>
-
     <div id="error" class="error"></div>
 
     <div class="frame-wrap">
-      <iframe id="app-frame" title="Zakazivac aplikacija"></iframe>
+      <iframe id="app-frame" title="Zakazivač"></iframe>
     </div>
 
-    <!-- Skripta učitava config.js iz istog direktorijuma -->
     <script src="config.js"></script>
     <script>
       window.addEventListener("DOMContentLoaded", function () {
@@ -84,7 +78,7 @@
 
         if (!webAppUrl) {
           errorBox.style.display = "block";
-          errorBox.innerHTML = "<strong>Nedostaje konfiguracija.</strong> Unesite ispravan Apps Script URL u <code>config.js</code>.";
+          errorBox.innerHTML = "<strong>Zakazivač aplikacija nije konfigurisana.</strong>";
           return;
         }
 
