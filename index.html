@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="sr">
   <head>
     <meta charset="UTF-8" />
@@ -83,6 +83,157 @@
         }
 
         frame.src = webAppUrl;
+      });
+    </script>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="sr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zakazivač</title>
+
+    <!-- Google Identity Services biblioteka -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #020617;
+        color: #e2e8f0;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .topbar {
+        padding: 12px 16px;
+        border-bottom: 1px solid #1e293b;
+        background: #0b1220;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .hint {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .frame-wrap {
+        min-height: 0;
+      }
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 52px);
+        background: #020617;
+      }
+      .error {
+        margin: 16px;
+        padding: 12px 14px;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        background: #0f172a;
+        color: #f8fafc;
+        display: none;
+      }
+      .error strong {
+        color: #fbbf24;
+      }
+      .login-overlay {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="title">Zakazivač</div>
+      <div id="auth-status">
+        <!-- Prazan kontejner u koji JS ubacuje Google dugme -->
+        <div id="g_id_signin"></div>
+      </div>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div id="login-prompt" class="login-overlay">
+      <h2>Dobrodošli</h2>
+      <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili zakazivanju.</p>
+    </div>
+
+    <div id="frame-container" class="frame-wrap" style="display: none">
+      <iframe id="app-frame" title="Zakazivač"></iframe>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+      var frame = document.getElementById("app-frame");
+      var errorBox = document.getElementById("error");
+      var loginPrompt = document.getElementById("login-prompt");
+      var frameContainer = document.getElementById("frame-container");
+
+      var cfg = window.APP_CONFIG || {};
+      var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
+      var clientId = String(cfg.googleClientId || "").trim();
+
+      // Funkcija koja se poziva kada Google vrati token
+      function handleCredentialResponse(response) {
+        var idToken = response.credential;
+
+        if (!webAppUrl) {
+          showError("Aplikacija nije konfigurisana (nedostaje Apps Script URL).");
+          return;
+        }
+
+        // Prikazujemo iframe i prosleđujemo token
+        loginPrompt.style.display = "none";
+        frameContainer.style.display = "block";
+        frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken);
+      }
+
+      function showError(msg) {
+        errorBox.style.display = "block";
+        errorBox.innerHTML = "<strong>" + msg + "</strong>";
+      }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        if (!webAppUrl || !clientId) {
+          showError("Zakazivač aplikacija nije konfigurisana (proverite config.js).");
+          return;
+        }
+
+        // Proveravamo da li se Google SDK biblioteka učitala
+        var checkGoogleInterval = setInterval(function () {
+          if (window.google && window.google.accounts) {
+            clearInterval(checkGoogleInterval);
+
+            // Dinamička inicijalizacija sa clientId iz config.js
+            google.accounts.id.initialize({
+              client_id: clientId,
+              callback: handleCredentialResponse,
+            });
+
+            // Prikazivanje dugmeta
+            google.accounts.id.renderButton(document.getElementById("g_id_signin"), { theme: "outline", size: "small" });
+          }
+        }, 100);
       });
     </script>
   </body>
