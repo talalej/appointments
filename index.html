@@ -108,7 +108,7 @@
     <div id="login-prompt" class="login-overlay">
       <img src="favicon.png" alt="Logo" class="login-logo" />
       <h2>Dobrodošli</h2>
-      <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili zakazivanju.</p>
+      <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili aplikaciji.</p>
     </div>
 
     <div id="frame-container" style="display: none">
@@ -129,7 +129,7 @@
       // Funkcija za prikaz aplikacije preko celog ekrana sa zadatim tokenom
       function otvoriAplikaciju(idToken) {
         if (!webAppUrl) {
-          showError("Aplikacija nije konfigurisana (nedostaje Apps Script URL).");
+          showError("Greška: Aplikacija nije konfigurisana.");
           return;
         }
 
@@ -163,7 +163,7 @@
 
       window.addEventListener("DOMContentLoaded", function () {
         if (!webAppUrl || !clientId) {
-          showError("Zakazivač aplikacija nije konfigurisana (proverite config.js).");
+          showError("Greška: Aplikacija nije konfigurisana.");
           return;
         }
 
