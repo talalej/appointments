@@ -46,15 +46,13 @@
         color: #94a3b8;
         margin-top: 8px;
       }
-      /* Stil za veliku ikonicu iznad "Dobrodošli" */
       .login-logo {
         width: 84px;
         height: 84px;
         object-fit: contain;
         margin-bottom: 16px;
-        border-radius: 16px; /* Opciono: blago zaobljene ivice */
+        border-radius: 16px;
       }
-      /* Stil za iframe preko celog ekrana nakon prijave */
       .frame-wrap-full {
         position: fixed;
         top: 0;
@@ -101,7 +99,6 @@
     <div class="topbar">
       <div class="title">Zakazivač</div>
       <div id="auth-status">
-        <!-- Prazan kontejner u koji JS ubacuje Google dugme -->
         <div id="g_id_signin"></div>
       </div>
     </div>
@@ -109,9 +106,7 @@
     <div id="error" class="error"></div>
 
     <div id="login-prompt" class="login-overlay">
-      <!-- VEĆA IKONICA IZNAD DOBRODOŠLI -->
-      <!-- <img src="favicon.png" alt="Logo" class="login-logo" /> -->
-
+      <img src="favicon.png" alt="Logo" class="login-logo" />
       <h2>Dobrodošli</h2>
       <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili zakazivanju.</p>
     </div>
@@ -131,16 +126,14 @@
       var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
       var clientId = String(cfg.googleClientId || "").trim();
 
-      // Funkcija koja se poziva kada Google vrati token
-      function handleCredentialResponse(response) {
-        var idToken = response.credential;
-
+      // Funkcija za prikaz aplikacije preko celog ekrana sa zadatim tokenom
+      function otvoriAplikaciju(idToken) {
         if (!webAppUrl) {
           showError("Aplikacija nije konfigurisana (nedostaje Apps Script URL).");
           return;
         }
 
-        // Sakrivamo nepotrebne elemente i sprečavamo skrolovanje roditeljske stranice
+        // Sakrivamo topbar i login ekran
         document.querySelector(".topbar").style.display = "none";
         loginPrompt.style.display = "none";
         document.body.style.overflow = "hidden";
@@ -151,6 +144,16 @@
 
         // Postavljamo URL sa tokenom
         frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken);
+      }
+
+      // Funkcija koja se poziva kada Google vrati nov token
+      function handleCredentialResponse(response) {
+        var idToken = response.credential;
+
+        // Sačuvamo token u memoriju pretraživača za buduća otvaranja
+        localStorage.setItem("user_google_token", idToken);
+
+        otvoriAplikaciju(idToken);
       }
 
       function showError(msg) {
@@ -164,6 +167,15 @@
           return;
         }
 
+        // 1. PROVERA: Da li već imamo sačuvan token od ranije?
+        var savedToken = localStorage.getItem("user_google_token");
+        if (savedToken) {
+          // Ako token postoji, odmah automatski otvaramo aplikaciju bez čekanja klika!
+          otvoriAplikaciju(savedToken);
+          return;
+        }
+
+        // 2. AKO NEMA TOKENA: Inicijalizujemo Google prijavu
         var attempts = 0;
         var maxAttempts = 100;
 
@@ -173,17 +185,13 @@
           if (window.google && window.google.accounts) {
             clearInterval(checkGoogleInterval);
 
-            // Inicijalizacija sa omogućenom automatskom prijavom
             google.accounts.id.initialize({
               client_id: clientId,
               callback: handleCredentialResponse,
               auto_select: true,
             });
 
-            // Prikaz standardnog dugmeta
             google.accounts.id.renderButton(document.getElementById("g_id_signin"), { theme: "outline", size: "small" });
-
-            // Otvara Google prompt za brzu prijavu
             google.accounts.id.prompt();
           } else if (attempts >= maxAttempts) {
             clearInterval(checkGoogleInterval);
