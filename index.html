@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zakazivač</title>
 
+    <!-- IKONICA SAJTA (Favicon za tab u browseru) -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+
     <!-- Google Identity Services biblioteka -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -38,8 +42,17 @@
         letter-spacing: 0.2px;
       }
       .hint {
-        font-size: 12px;
+        font-size: 14px;
         color: #94a3b8;
+        margin-top: 8px;
+      }
+      /* Stil za veliku ikonicu iznad "Dobrodošli" */
+      .login-logo {
+        width: 84px;
+        height: 84px;
+        object-fit: contain;
+        margin-bottom: 16px;
+        border-radius: 16px; /* Opciono: blago zaobljene ivice */
       }
       /* Stil za iframe preko celog ekrana nakon prijave */
       .frame-wrap-full {
@@ -78,6 +91,10 @@
         text-align: center;
         min-height: calc(100vh - 60px);
       }
+      .login-overlay h2 {
+        margin: 0;
+        font-size: 24px;
+      }
     </style>
   </head>
   <body>
@@ -92,6 +109,9 @@
     <div id="error" class="error"></div>
 
     <div id="login-prompt" class="login-overlay">
+      <!-- VEĆA IKONICA IZNAD DOBRODOŠLI -->
+      <img src="favicon.png" alt="Logo" class="login-logo" />
+
       <h2>Dobrodošli</h2>
       <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili zakazivanju.</p>
     </div>
@@ -120,12 +140,12 @@
           return;
         }
 
-        // Sakrivamo nepotrebne elemente i sprecavamo skrolovanje roditeljske stranice
+        // Sakrivamo nepotrebne elemente i sprečavamo skrolovanje roditeljske stranice
         document.querySelector(".topbar").style.display = "none";
         loginPrompt.style.display = "none";
         document.body.style.overflow = "hidden";
 
-        // Sirimo iframe preko celog ekrana
+        // Širimo iframe preko celog ekrana
         frameContainer.className = "frame-wrap-full";
         frameContainer.style.display = "block";
 
