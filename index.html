@@ -29,14 +29,14 @@
         background: #020617;
         color: #e2e8f0;
       }
-      .topbar {
+      /* .topbar {
         padding: 12px 16px;
         border-bottom: 1px solid #1e293b;
         background: #0b1220;
         display: flex;
         align-items: center;
         justify-content: space-between;
-      }
+      } */
       .title {
         font-weight: 700;
         letter-spacing: 0.2px;
@@ -96,12 +96,12 @@
     </style>
   </head>
   <body>
-    <div class="topbar">
+    <!-- <div class="topbar">
       <div class="title">Zakazivač</div>
       <div id="auth-status">
         <div id="g_id_signin"></div>
       </div>
-    </div>
+    </div> -->
 
     <div id="error" class="error"></div>
 
@@ -109,6 +109,9 @@
       <img src="favicon.png" alt="Logo" class="login-logo" />
       <h2>Dobrodošli</h2>
       <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili aplikaciji.</p>
+      <div id="auth-status">
+        <div id="g_id_signin"></div>
+      </div>
     </div>
 
     <div id="frame-container" style="display: none">
@@ -126,7 +129,7 @@
       var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
       var clientId = String(cfg.googleClientId || "").trim();
 
-      // Funkcija za proveru da li sačuvani JWT token još uvek važi (najmanje još 5 minuta)
+      // Provera da li je token i dalje vremenski validan
       function jeLiTokenValidan(token) {
         try {
           var base64Url = token.split(".")[1];
@@ -139,44 +142,49 @@
               })
               .join("")
           );
-
           var payload = JSON.parse(jsonPayload);
           var sada = Math.floor(Date.now() / 1000);
-
-          // Vraća true ako token važi bar još 300 sekundi (5 minuta)
-          return payload.exp > sada + 300;
+          return payload.exp > sada + 300; // Važi bar još 5 minuta
         } catch (e) {
           return false;
         }
       }
 
-      // Funkcija za prikaz aplikacije preko celog ekrana sa zadatim tokenom
+      // Odjava i resetovanje na login ekran
+      function resetujPrijavu(poruka) {
+        localStorage.removeItem("user_google_token");
+
+        // Vraćamo prikaz na početni ekran
+        frameContainer.style.display = "none";
+        frame.src = "about:blank";
+        document.querySelector(".topbar").style.display = "flex";
+        loginPrompt.style.display = "flex";
+        document.body.style.overflow = "auto";
+
+        if (poruka) {
+          showError(poruka);
+        }
+      }
+
       function otvoriAplikaciju(idToken) {
         if (!webAppUrl) {
           showError("Greška: Aplikacija nije konfigurisana.");
           return;
         }
 
-        // Sakrivamo topbar i login ekran
         document.querySelector(".topbar").style.display = "none";
         loginPrompt.style.display = "none";
         document.body.style.overflow = "hidden";
 
-        // Širimo iframe preko celog ekrana
         frameContainer.className = "frame-wrap-full";
         frameContainer.style.display = "block";
 
-        // Postavljamo URL sa tokenom
         frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken);
       }
 
-      // Funkcija koja se poziva kada Google vrati nov token
       function handleCredentialResponse(response) {
         var idToken = response.credential;
-
-        // Sačuvamo nov, svež token u pretraživaču
         localStorage.setItem("user_google_token", idToken);
-
         otvoriAplikaciju(idToken);
       }
 
@@ -185,27 +193,30 @@
         errorBox.innerHTML = "<strong>" + msg + "</strong>";
       }
 
+      // SLUŠAMO PORUKE IZ APPS SCRIPT IFRAME-A
+      window.addEventListener("message", function (event) {
+        if (event.data && event.data.type === "AUTH_ERROR") {
+          // Ako Apps Script javi da korisnik nema pristup u Sheet-u:
+          resetujPrijavu("Pristup je odbijen. Vaš e-mail se ne nalazi na listi odobrenih korisnika.");
+        }
+      });
+
       window.addEventListener("DOMContentLoaded", function () {
         if (!webAppUrl || !clientId) {
           showError("Greška: Aplikacija nije konfigurisana.");
           return;
         }
 
-        // 1. PROVERA: Da li već imamo važeći (nesrećno istekao) token u localStorage
         var savedToken = localStorage.getItem("user_google_token");
         if (savedToken && jeLiTokenValidan(savedToken)) {
-          // Token je nov i važeći -> odmah otvaramo aplikaciju bez čekanja Google SDK
           otvoriAplikaciju(savedToken);
           return;
         }
 
-        // Ako nema tokena ili je istekao, uklanjamo bajati token
         localStorage.removeItem("user_google_token");
 
-        // 2. INICIJALIZACIJA GOOGLE SDK-a (za brzu automatsku prijavu u pozadini)
         var attempts = 0;
         var maxAttempts = 100;
-
         var checkGoogleInterval = setInterval(function () {
           attempts++;
 
@@ -215,14 +226,14 @@
             google.accounts.id.initialize({
               client_id: clientId,
               callback: handleCredentialResponse,
-              auto_select: true, // Automatski preuzima nov token ako je korisnik prijavljen na Google
+              auto_select: true,
             });
 
             google.accounts.id.renderButton(document.getElementById("g_id_signin"), { theme: "outline", size: "small" });
             google.accounts.id.prompt();
           } else if (attempts >= maxAttempts) {
             clearInterval(checkGoogleInterval);
-            showError("Nije moguće učitati Google Sign-In servise. Proverite internet vezu ili AdBlocker.");
+            showError("Nije moguće učitati Google Sign-In servise.");
           }
         }, 100);
       });
