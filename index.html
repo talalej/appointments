@@ -94,9 +94,8 @@
       <img src="favicon.png" alt="Logo" class="login-logo" />
       <h2>Dobrodošli u Zakazivač</h2>
       <p class="hint">Molimo prijavite se putem Google naloga kako biste pristupili aplikaciji.</p>
-      <div id="auth-status" class="hint" style="margin-top: 12px;"></div>
-        <div id="g_id_signin"></div>
-      </div>
+      <div id="auth-status" class="hint" style="margin-top: 12px"></div>
+      <div id="g_id_signin"></div>
     </div>
 
     <div id="frame-container" style="display: none">
@@ -113,6 +112,15 @@
       var cfg = window.APP_CONFIG || {};
       var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
       var clientId = String(cfg.googleClientId || "").trim();
+      var appsScriptOrigin = "";
+
+      function getOriginFromUrl(url) {
+        try {
+          return new URL(String(url || "").trim()).origin;
+        } catch (e) {
+          return "";
+        }
+      }
 
       // Provera da li je token i dalje vremenski validan
       function jeLiTokenValidan(token) {
@@ -162,7 +170,7 @@
         frameContainer.className = "frame-wrap-full";
         frameContainer.style.display = "block";
 
-        frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken);
+        frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken) + "&parentOrigin=" + encodeURIComponent(window.location.origin);
       }
 
       function handleCredentialResponse(response) {
@@ -173,11 +181,15 @@
 
       function showError(msg) {
         errorBox.style.display = "block";
-        errorBox.innerHTML = "<strong>" + msg + "</strong>";
+        errorBox.textContent = String(msg || "");
       }
 
       // SLUŠAMO PORUKE IZ APPS SCRIPT IFRAME-A
       window.addEventListener("message", function (event) {
+        if (!appsScriptOrigin || event.origin !== appsScriptOrigin) {
+          return;
+        }
+
         if (event.data && event.data.type === "AUTH_ERROR") {
           // Ako Apps Script javi da korisnik nema pristup u Sheet-u:
           resetujPrijavu("Pristup je odbijen. Vaš e-mail se ne nalazi na listi odobrenih korisnika.");
@@ -189,6 +201,8 @@
           showError("Greška: Aplikacija nije konfigurisana.");
           return;
         }
+
+        appsScriptOrigin = getOriginFromUrl(webAppUrl);
 
         var savedToken = localStorage.getItem("user_google_token");
         if (savedToken && jeLiTokenValidan(savedToken)) {
