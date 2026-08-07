@@ -2,7 +2,7 @@
 <html lang="sr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- PWA Manifest & Meta tagovi -->
     <link rel="manifest" href="manifest.json" />
@@ -10,17 +10,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Zakazivač" />
-    <!-- Dodatna PWA podešavanja za iOS Safari -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <title>Zakazivač</title>
 
-    <!-- IKONICA SAJTA (Favicon za tab u browseru) -->
+    <!-- IKONICA SAJTA -->
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="apple-touch-icon" href="favicon.png" />
 
-    <!-- Google Identity Services biblioteka -->
+    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
@@ -56,15 +53,26 @@
         margin-bottom: 16px;
         border-radius: 16px;
       }
+
+      /* PRILAGOĐEN IFRAME KONTEJNER ZA MOBILNE EKRANE */
       .frame-wrap-full {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vw;
+        right: 0;
+        bottom: 0;
+        /* Fallback za starije browsere, pa moderni dvh i safe-area podrška */
         height: 100vh;
+        height: 100dvh;
         z-index: 99999;
         background: #020617;
+        /* Prilagođavanje za notch i status bar na iOS uređajima */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
       }
+
       iframe {
         border: 0;
         width: 100%;
@@ -90,7 +98,7 @@
         justify-content: center;
         padding: 40px 20px;
         text-align: center;
-        min-height: calc(100vh - 60px);
+        min-height: calc(100dvh - 60px);
       }
       .login-overlay h2 {
         margin: 0;
@@ -133,7 +141,14 @@
         }
       }
 
-      // Provera da li je token i dalje vremenski validan
+      // Dinamičko preračunavanje visine na mobilnim uređajima
+      function podesiVisinuEkrana() {
+        var vh = window.innerHeight;
+        if (frameContainer && frameContainer.style.display !== "none") {
+          frameContainer.style.height = vh + "px";
+        }
+      }
+
       function jeLiTokenValidan(token) {
         try {
           var base64Url = token.split(".")[1];
@@ -148,17 +163,14 @@
           );
           var payload = JSON.parse(jsonPayload);
           var sada = Math.floor(Date.now() / 1000);
-          return payload.exp > sada + 300; // Važi bar još 5 minuta
+          return payload.exp > sada + 300;
         } catch (e) {
           return false;
         }
       }
 
-      // Odjava i resetovanje na login ekran
       function resetujPrijavu(poruka) {
         localStorage.removeItem("user_google_token");
-
-        // Vraćamo prikaz na početni ekran
         frameContainer.style.display = "none";
         frame.src = "about:blank";
         loginPrompt.style.display = "flex";
@@ -181,6 +193,8 @@
         frameContainer.className = "frame-wrap-full";
         frameContainer.style.display = "block";
 
+        podesiVisinuEkrana();
+
         frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken) + "&parentOrigin=" + encodeURIComponent(window.location.origin);
       }
 
@@ -195,24 +209,20 @@
         errorBox.textContent = String(msg || "");
       }
 
-      // SLUŠAMO PORUKE IZ APPS SCRIPT IFRAME-A
+      // Slušamo poruke iz Apps Script iframe-a
       window.addEventListener("message", function (event) {
         if (!appsScriptOrigin || event.origin !== appsScriptOrigin) {
           return;
         }
 
         if (event.data && event.data.type === "AUTH_ERROR") {
-          // Ako Apps Script javi da korisnik nema pristup u Sheet-u:
           resetujPrijavu("Pristup je odbijen. Vaš e-mail se ne nalazi na listi odobrenih korisnika.");
         }
-
-        if (event.data && event.data.type === "SET_IFRAME_HEIGHT") {
-          const iframe = document.getElementById("app-frame");
-          if (iframe) {
-            iframe.style.height = event.data.height + "px";
-          }
-        }
       });
+
+      // Ažuriranje visine pri promeni orijentacije ili skrolovanju adresne trake
+      window.addEventListener("resize", podesiVisinuEkrana);
+      window.addEventListener("orientationchange", podesiVisinuEkrana);
 
       window.addEventListener("DOMContentLoaded", function () {
         if (!webAppUrl || !clientId) {
@@ -252,17 +262,11 @@
           }
         }, 100);
 
-        // Registracija Service Worker-a za PWA
+        // Registracija Service Worker-a
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.register("./sw.js").catch(function (err) {
             console.log("ServiceWorker greška pri registraciji:", err);
           });
-        }
-
-        // Vas postojeci kod se nastavlja ovde...
-        if (!webAppUrl || !clientId) {
-          showError("Greška: Aplikacija nije konfigurisana.");
-          return;
         }
       });
     </script>
