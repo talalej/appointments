@@ -131,6 +131,7 @@
       var cfg = window.APP_CONFIG || {};
       var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
       var clientId = String(cfg.googleClientId || "").trim();
+      var appVersion = String(cfg.appVersion || "1.0.0").trim();
       var appsScriptOrigin = "";
 
       function getOriginFromUrl(url) {
@@ -195,7 +196,14 @@
 
         podesiVisinuEkrana();
 
-        frame.src = webAppUrl + "?token=" + encodeURIComponent(idToken) + "&parentOrigin=" + encodeURIComponent(window.location.origin);
+        frame.src =
+          webAppUrl +
+          "?token=" +
+          encodeURIComponent(idToken) +
+          "&parentOrigin=" +
+          encodeURIComponent(window.location.origin) +
+          "&v=" +
+          encodeURIComponent(appVersion);
       }
 
       function handleCredentialResponse(response) {
