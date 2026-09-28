@@ -131,7 +131,7 @@
       var cfg = window.APP_CONFIG || {};
       var webAppUrl = String(cfg.appsScriptWebAppUrl || "").trim();
       var clientId = String(cfg.googleClientId || "").trim();
-      var appVersion = String(cfg.appVersion || "1.0.0").trim();
+      var appVersion = String(cfg.appVersion || "DEV").trim();
       var appsScriptOrigin = "";
 
       function getOriginFromUrl(url) {
@@ -236,6 +236,11 @@
         if (!webAppUrl || !clientId) {
           showError("Greška: Aplikacija nije konfigurisana.");
           return;
+        }
+
+        const appInfoVersion = document.getElementById("app-info-version");
+        if (appInfoVersion) {
+          version.textContent = "<?= appVersion ?>";
         }
 
         appsScriptOrigin = getOriginFromUrl(webAppUrl);
