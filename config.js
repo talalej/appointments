@@ -1,7 +1,7 @@
 (function (root) {
   root.APP_CONFIG = {
-    appVersion: "Dev.October.007",
-    appsScriptWebAppUrl: "https://script.google.com/macros/s/AKfycbxkBB8K3qZGayIpmGIHx81S2NTDymhc1q4JB3r5Z1HT2eb55KW6CRppIBm_k07wA6ag/exec",
+    appVersion: "DEV.09/10/2026.1",
+    appsScriptWebAppUrl: "https://script.google.com/macros/s/AKfycbyapAENAagdPf9jsamnu95rxv_sv-Zj3UeyekmllR6lUjfj40SLgM4T5lvOGslXpFUh/exec",
     googleClientId: "555032185416-ov9reehi1rliv9ltvufk0sssm3iimqqg.apps.googleusercontent.com",
   };
 })(typeof window !== "undefined" ? window : this);
